@@ -66,6 +66,18 @@ size_t readBuffer(const char * const filename, void * buffer, size_t objectSize,
         return 0ULL;
     }
 
+    // verify the filesize is exact match
+    fseek(fp, 0, SEEK_END); // seek to end of file
+    size_t L_verified_length = ftell(fp); // get current file pointer
+    fseek(fp, 0, SEEK_SET); // seek back to beginning of file
+
+    if (L_verified_length != (objectSize * objectCount))
+    {
+        printf("file has incorrect length: %s\n");
+        return 0LL;
+    }
+
+    // read data from the file into the provided buffer
     size_t objectsRead = fread(buffer, objectSize, objectCount, fp);
     if (objectsRead == 0ULL)
     {
@@ -108,6 +120,49 @@ size_t readRect_RGB565(const char * const filename, size_t width, size_t height)
     printf("first value : 0x%04x\n", buffer[0]);
     printf("last value  : 0x%04x\n", buffer[PIXEL_COUNT-1U]);
     return bytes_read;
+}
+
+bool verify_filesize(const char * const filename, size_t length_bytes)
+{
+    if (!filename)
+    {
+        printf("verifyFilesize: invalid parameter, null pointer detected\n");
+        return 0ULL;
+    }
+
+    if (length_bytes == 0)
+    {
+        printf("verifyFilesize: file size of zero bytes\n");
+        return false;
+    }
+
+    FILE * fp =  nullptr;
+    // open the file in binary write mode
+    fp = fopen(filename, "rb"); 
+    if (!fp)
+    {
+        printf("verifyFilesize: failed to open file: %s\n", filename);
+        return false;
+    }
+
+    // verify correct file length
+    fseek(fp, 0, SEEK_END); // seek to end of file
+    size_t L_length_bytes = ftell(fp); // get current file pointer
+    fseek(fp, 0, SEEK_SET); // seek back to beginning of file
+    
+    bool L_retVal = false;
+    if (L_length_bytes != length_bytes)
+    {
+        printf("verifyFilesize: incorrect file length\n");
+        L_retVal = false;
+    }
+    else
+    {
+        printf("verifyFilesize: correct file length\n");
+        L_retVal = true;
+    }
+    fclose(fp);
+    return L_retVal;
 }
 
 
