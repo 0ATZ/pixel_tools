@@ -13,6 +13,39 @@ def Color_24bit_to_16bit(color):
     # print(hex(color_16bit))
     return color_16bit
     
+    
+    
+def convert_sprite(row, col, num_cols, width, height):
+
+    # skip all the pixels of the previous rows
+    # row offset = row number times pixels per row
+    row_offset = row * (num_cols*width*height)
+    
+    # skip all the pixels of the previous cols
+    # col offset = column number times pixels per col
+    col_offset = col * width
+
+    # row_offset + col_offset gives the start position 
+    # need to add another offset to jump to the next line 
+    # after each row of sprite pixels
+    offset = 0
+    
+    for px_index in range(width*height):
+        
+        index = (row_offset)+(col_offset)+px_index+offset
+        
+        # val = '#' if pixels[index] == 1 else '_'
+        # print(f'{val} ', end='')
+        
+        # write the converted pixel to the file
+        yield colors[pixels[index]]
+        
+        # this is the last sprite pixel in this line 
+        if (px_index % width) == (width - 1): 
+            # add another offset to go to the next line of pixels for this sprite
+            offset += (width * (num_cols - 1))
+            # print()
+    
 
 colors = {
     1  : 0x222034,
@@ -22,6 +55,7 @@ colors = {
     11 : 0x37946e,
     12 : 0x4b692f,
     14 : 0x323c39,
+    21 : 0xffffff,
     24 : 0x696a6a,
 }
 
@@ -41,19 +75,13 @@ count = 0
 with open('../output/grass_sprites.bin', 'wb') as fp:
     num_rows = 6
     num_cols = 6
-    width_px = 16
-    height_px = 16
+    width = 16
+    height = 16
     
     for row in range(num_rows):
-        for col in range(num_cols):
-            for y in range(height_px):
-                for x in range(width_px):
-                    start_index = (col * width_px) + (row*width_px*num_cols)
-                    i = start_index + x + (y*width_px*num_cols)
-                    print(f'{i:04} ', end='')
-                    if i % 16 == 15:
-                        print()
-                    fp.write(pack('@H', colors[pixels[i]]))
-                    count += 1
+        for col in range(num_cols):            
+            for px in convert_sprite(row, col, num_cols, width, height):
+                fp.write(pack('@H', px))
+                count += 1
     
 print('pixel count: ', count)
