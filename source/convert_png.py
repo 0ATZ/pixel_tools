@@ -55,8 +55,10 @@ colors = {
     11 : 0x37946e,
     12 : 0x4b692f,
     14 : 0x323c39,
+    17 : 0x5b6ee1,
     21 : 0xffffff,
     24 : 0x696a6a,
+    27 : 0xac3232,
 }
 
 # convert to RGB565
@@ -64,7 +66,7 @@ for index, color in colors.items():
     colors[index] = Color_24bit_to_16bit(color)
 
 # Open the PNG image
-image = Image.open("C:/Josh/josh-grass-Sheet-Sheet.png")
+image = Image.open("C:/Josh/red_green_blue.png")
 
 # Get the width, height, and pixel bytes
 width, height = image.size
@@ -72,9 +74,9 @@ print(width, height)
 pixels = list(image.getdata())
 
 count = 0
-with open('../output/grass_sprites.bin', 'wb') as fp:
-    num_rows = 6
-    num_cols = 6
+with open('../output/red_green_blue.bin', 'wb') as fp:
+    num_rows = 1
+    num_cols = 3
     width = 16
     height = 16
     
