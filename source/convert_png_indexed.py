@@ -4,9 +4,8 @@ from struct import pack
 RED_MASK = 0xFF0000
 GREEN_MASK = 0x00FF00
 BLUE_MASK = 0x0000FF
-TRANSPARENT = 0xF81F
 
-def Color_24bit_to_16bit(color : int):
+def Color_24bit_to_16bit(color):
     red   = (color & RED_MASK) >> 16
     green = (color & GREEN_MASK) >> 8
     blue  = (color & BLUE_MASK)
@@ -14,14 +13,6 @@ def Color_24bit_to_16bit(color : int):
     # print(hex(color_16bit))
     return color_16bit
     
-def Color_Tuple_to_16bit(color : tuple):
-    if color[3] == 0:
-        return TRANSPARENT
-    red = (color[0] >> 3) & 0x1F
-    green = (color[1] >> 2) & 0x3F 
-    blue  = (color[2] >> 3) & 0x1F
-    color_16bit = red << 11 | green << 5 | blue
-    return color_16bit
     
     
 def convert_sprite(row, col, num_cols, width, height):
@@ -47,16 +38,35 @@ def convert_sprite(row, col, num_cols, width, height):
         # print(f'{val} ', end='')
         
         # write the converted pixel to the file
-        yield index
+        yield colors[pixels[index]]
         
         # this is the last sprite pixel in this line 
         if (px_index % width) == (width - 1): 
             # add another offset to go to the next line of pixels for this sprite
             offset += (width * (num_cols - 1))
+            # print()
+    
 
+colors = {
+    1  : 0x222034,
+    4  : 0x8f563b,
+    9  : 0x99e550,
+    10 : 0x6abe30,
+    11 : 0x37946e,
+    12 : 0x4b692f,
+    14 : 0x323c39,
+    17 : 0x5b6ee1,
+    21 : 0xffffff,
+    24 : 0x696a6a,
+    27 : 0xac3232,
+}
 
-# Open the PNG image pixel format is (RED, GREEN, BLUE, ALPHA)
-image = Image.open("C:/Josh/aseprite/josh/cursor32.png")
+# convert to RGB565
+for index, color in colors.items():
+    colors[index] = Color_24bit_to_16bit(color)
+
+# Open the PNG image
+image = Image.open("C:/Josh/red_green_blue.png")
 
 # Get the width, height, and pixel bytes
 width, height = image.size
@@ -64,20 +74,16 @@ print(width, height)
 pixels = list(image.getdata())
 
 count = 0
-with open('../../aaa_game_engine/assets/sprites/cursors.bin', 'wb') as fp:
+with open('../output/red_green_blue.bin', 'wb') as fp:
     num_rows = 1
     num_cols = 3
-    width = 32
-    height = 32
+    width = 16
+    height = 16
     
     for row in range(num_rows):
         for col in range(num_cols):            
-            for index in convert_sprite(row, col, num_cols, width, height):
-                converted_color = Color_Tuple_to_16bit(pixels[index])
-                print(f'{hex(converted_color)} ', end='')
-                if index % 32 == 31:
-                    print()
-                fp.write(pack('@H', converted_color))
+            for px in convert_sprite(row, col, num_cols, width, height):
+                fp.write(pack('@H', px))
                 count += 1
     
 print('pixel count: ', count)
